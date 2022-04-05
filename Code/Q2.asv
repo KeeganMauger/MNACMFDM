@@ -148,7 +148,6 @@ for j = 1:3;
         x(:,n+1) = Q*Y;
     end
     BE3 = x;
-end
 
 
 
