@@ -82,12 +82,15 @@ Vin = 1;
 Vprobe = 0;
 R1 = 1;
 R2 = 2;
-R3 = 123.346641;
+%R3 = 123.346641;
+R3 = 50;
 R4 = 0.1;
 R5 = 1000;
 C1 = 0.25;
 L1 = 0.2;
 alpha = 100;
+In = 0.001;
+Cn = 0.00001;
 
 cap(1,2,C1);
 res(1,2,R1);
@@ -99,6 +102,8 @@ xr = vol(6,0,Vprobe);
 ind(2,3,L1);
 vol(1,0,Vin);
 vcvs(4,0,xr,0,alpha);
+cur(4,0,In);
+cap(4,0,Cn);
 
 b1 = b*u_t;
 b2 = b*v_t;
@@ -151,28 +156,8 @@ for j = 1:3
 end
 
 
-figure(6)
-subplot(3,1,1);
-plot(t_vec_1, u_t,'LineWidth',1);
-hold on;
-plot(t_vec_1, BE1(outNode,:),'LineStyle','-.', 'color','r','LineWidth',1);
-title('Vin and Vout for Step Function Input')
-ylabel('Voltage (V)')
-xlabel('Time (s)')
-legend('Vin','Vout')
-hold off
+figure(7)
 
-subplot(3,1,2);
-plot(t_vec_1, v_t,'LineWidth',1);
-hold on;
-plot(t_vec_1, BE2(outNode,:),'LineStyle','-.', 'color','r','LineWidth',1);
-title('Vin and Vout for Sin Function Input')
-ylabel('Voltage (V)')
-xlabel('Time (s)')
-legend('Vin','Vout')
-hold off
-
-subplot(3,1,3);
 plot(t_vec_1, w_t,'LineWidth',1);
 hold on;
 plot(t_vec_1, BE3(outNode,:),'LineStyle','-.', 'color','r','LineWidth',1);
@@ -181,41 +166,8 @@ ylabel('Voltage (V)')
 xlabel('Time (s)')
 legend('Vin','Vout')
 hold off
-saveas(gcf,'Figure6')
+saveas(gcf,'Figure7')
 
-fullBE1 = full(BE1(outNode,:
-FT1 = fft(BE1(outNode,:));
-
-
-
-% w = 0;
-% s = j*w;
-% 
-% A = G + s*C;
-% A0 = full(A);
-% 
-% 
-% V0 = linspace(-10,10,21);
-% b0 = sparse((width(G)),width(V0));
-% for i = 1:width(V0)
-%     b0(9,i) = V0(i);
-% end
-% 
-% x = sparse((width(G)),width(V0));
-% 
-% for j = 1:width(V0)
-%     x(:,j) = (G + s*C) \ b0(:,j);
-% end
-% 
-% figure(2)
-% plot(V0,x(5,:))
-% hold on
-% plot(V0,x(3,:))
-% grid on
-% axis([-10 10 -100 100])
-% title('Vout vs Vin')
-% xlabel('Vin')
-% ylabel('Vout')
-% legend('Vout','V3')
-% saveas(gcf,'Figure2')
-% hold off
+F_vec_1 = 1./t_vec_1;
+fullBE1 = full(BE1(outNode,:));
+FT1 = fft(fullBE1);

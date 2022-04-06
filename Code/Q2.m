@@ -111,7 +111,7 @@ h = 0.001;
 x = sparse(width(G),numel(t_vec_1));
 C_h = C*(1/h);
 
-for j = 1:3;
+for j = 1:3
     for n=1:1000
         if n == 1000
             break;
@@ -151,10 +151,41 @@ for j = 1:3;
 end
 
 
+figure(6)
+subplot(3,1,1);
+plot(t_vec_1, u_t,'LineWidth',1);
+hold on;
+plot(t_vec_1, BE1(outNode,:),'LineStyle','-.', 'color','r','LineWidth',1);
+title('Vin and Vout for Step Function Input')
+ylabel('Voltage (V)')
+xlabel('Time (s)')
+legend('Vin','Vout')
+hold off
 
+subplot(3,1,2);
+plot(t_vec_1, v_t,'LineWidth',1);
+hold on;
+plot(t_vec_1, BE2(outNode,:),'LineStyle','-.', 'color','r','LineWidth',1);
+title('Vin and Vout for Sin Function Input')
+ylabel('Voltage (V)')
+xlabel('Time (s)')
+legend('Vin','Vout')
+hold off
 
+subplot(3,1,3);
+plot(t_vec_1, w_t,'LineWidth',1);
+hold on;
+plot(t_vec_1, BE3(outNode,:),'LineStyle','-.', 'color','r','LineWidth',1);
+title('Vin and Vout for Gaussian Function Input')
+ylabel('Voltage (V)')
+xlabel('Time (s)')
+legend('Vin','Vout')
+hold off
+saveas(gcf,'Figure6')
 
-
+F_vec_1 = 1./t_vec_1;
+fullBE1 = full(BE1(outNode,:));
+FT1 = fft(fullBE1);
 
 
 
