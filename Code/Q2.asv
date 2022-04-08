@@ -82,7 +82,8 @@ Vin = 1;
 Vprobe = 0;
 R1 = 1;
 R2 = 2;
-R3 = 123.346641;
+R3 = 50;
+%R3 = 123.346641;
 R4 = 0.1;
 R5 = 1000;
 C1 = 0.25;
@@ -111,44 +112,43 @@ h = 0.001;
 x = sparse(width(G),numel(t_vec_1));
 C_h = C*(1/h);
 
-for j = 1:3
-    for n=1:1000
-        if n == 1000
-            break;
-        end
-        BE_LHS = C_h + G;
-        BE_RHS = C_h*x(:,n) + b1(:,n+1);
-        [L, U, P, Q]= lu( sparse(BE_LHS) , 0.1 );
-        Z = L \(P* sparse(BE_RHS));
-        Y = U \ Z;
-        x(:,n+1) = Q*Y;
+for n=1:1000
+    if n == 1000
+        break;
     end
-    BE1 = x;
-    for n=1:1000
-        if n == 1000
-            break;
-        end
-        BE_LHS = C_h + G;
-        BE_RHS = C_h*x(:,n) + b2(:,n+1);
-        [L, U, P, Q]= lu( sparse(BE_LHS) , 0.1 );
-        Z = L \(P* sparse(BE_RHS));
-        Y = U \ Z;
-        x(:,n+1) = Q*Y;
-    end
-    BE2 = x;
-    for n=1:1000
-        if n == 1000
-            break;
-        end
-        BE_LHS = C_h + G;
-        BE_RHS = C_h*x(:,n) + b3(:,n+1);
-        [L, U, P, Q]= lu( sparse(BE_LHS) , 0.1 );
-        Z = L \(P* sparse(BE_RHS));
-        Y = U \ Z;
-        x(:,n+1) = Q*Y;
-    end
-    BE3 = x;
+    BE_LHS = C_h + G;
+    BE_RHS = C_h*x(:,n) + b1(:,n+1);
+    [L, U, P, Q]= lu( sparse(BE_LHS) , 0.1 );
+    Z = L \(P* sparse(BE_RHS));
+    Y = U \ Z;
+    x(:,n+1) = Q*Y;
 end
+BE1 = x;
+for n=1:1000
+    if n == 1000
+        break;
+    end
+    BE_LHS = C_h + G;
+    BE_RHS = C_h*x(:,n) + b2(:,n+1);
+    [L, U, P, Q]= lu( sparse(BE_LHS) , 0.1 );
+    Z = L \(P* sparse(BE_RHS));
+    Y = U \ Z;
+    x(:,n+1) = Q*Y;
+end
+BE2 = x;
+for n=1:1000
+    if n == 1000
+        break;
+    end
+    BE_LHS = C_h + G;
+    BE_RHS = C_h*x(:,n) + b3(:,n+1);
+    [L, U, P, Q]= lu( sparse(BE_LHS) , 0.1 );
+    Z = L \(P* sparse(BE_RHS));
+    Y = U \ Z;
+    x(:,n+1) = Q*Y;
+end
+BE3 = x;
+
 
 
 figure(6)
@@ -183,8 +183,21 @@ legend('Vin','Vout')
 hold off
 saveas(gcf,'Figure6')
 
-fullBE1 = full(BE1(outNode,:
-FT1 = fft(BE1(outNode,:));
+%F_vec_1 = 1./t_vec_1;
+figure(7)
+subplot(3,1,1);
+fullBE1 = full(BE1(outNode,:));
+FT1 = fft(fullBE1);
+plot(fftshift(abs(FT1)))
+
+subplot(3,1,2);
+fullBE2 = full(BE2(outNode,:));
+FT2 = fft(fullBE2);
+plot(fftshift(abs(FT2)))
+
+subpllot(3,1,3);
+fullBE3 = full
+
 
 
 

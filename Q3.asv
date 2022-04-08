@@ -13,11 +13,12 @@ set(0,'DefaultLineLineWidth', 0.5);
 global G b C
 nodes = 6;
 outNode = 5;
+inNode = 9;
 G = sparse(nodes,nodes);
 C = sparse(nodes,nodes);
 b = sparse(nodes,1);
 
-N = 1000; %num points
+
 t_vec_1 = linspace(0,1,1000);
 t_vec_2 = linspace(0+0.06,1-0.06,1000-120);
 t = 0;
@@ -82,13 +83,15 @@ Vin = 1;
 Vprobe = 0;
 R1 = 1;
 R2 = 2;
-R3 = 50;
 %R3 = 123.346641;
+R3 = 50;
 R4 = 0.1;
 R5 = 1000;
 C1 = 0.25;
 L1 = 0.2;
 alpha = 100;
+In = 0.001;
+Cn = 0.00001;
 
 cap(1,2,C1);
 res(1,2,R1);
@@ -100,10 +103,23 @@ xr = vol(6,0,Vprobe);
 ind(2,3,L1);
 vol(1,0,Vin);
 vcvs(4,0,xr,0,alpha);
+cur(4,0,In);
+cap(4,0,Cn);
 
-b1 = b*u_t;
-b2 = b*v_t;
-b3 = b*w_t;
+
+
+% b1 = b*u_t;
+% b2 = b*v_t;
+b3 = zeros(10,1000);
+b3(inNode,:) = w_t;
+
+std = 0.005;
+mu = In;
+r = normrnd(mu,std,1000);
+for i = 1:1000
+    b3(4,i) = r(i);
+end
+% make b*wt and In into 2 different things
 
 %--------------------------------------------------------------------------
 % FDM Solution: Backwards Euler with Timestep 0.001
@@ -117,30 +133,6 @@ for n=1:1000
         break;
     end
     BE_LHS = C_h + G;
-    BE_RHS = C_h*x(:,n) + b1(:,n+1);
-    [L, U, P, Q]= lu( sparse(BE_LHS) , 0.1 );
-    Z = L \(P* sparse(BE_RHS));
-    Y = U \ Z;
-    x(:,n+1) = Q*Y;
-end
-BE1 = x;
-for n=1:1000
-    if n == 1000
-        break;
-    end
-    BE_LHS = C_h + G;
-    BE_RHS = C_h*x(:,n) + b2(:,n+1);
-    [L, U, P, Q]= lu( sparse(BE_LHS) , 0.1 );
-    Z = L \(P* sparse(BE_RHS));
-    Y = U \ Z;
-    x(:,n+1) = Q*Y;
-end
-BE2 = x;
-for n=1:1000
-    if n == 1000
-        break;
-    end
-    BE_LHS = C_h + G;
     BE_RHS = C_h*x(:,n) + b3(:,n+1);
     [L, U, P, Q]= lu( sparse(BE_LHS) , 0.1 );
     Z = L \(P* sparse(BE_RHS));
@@ -149,30 +141,11 @@ for n=1:1000
 end
 BE3 = x;
 
+Fs = 1/h;
+dF = 
 
-
-figure(6)
-subplot(3,1,1);
-plot(t_vec_1, u_t,'LineWidth',1);
-hold on;
-plot(t_vec_1, BE1(outNode,:),'LineStyle','-.', 'color','r','LineWidth',1);
-title('Vin and Vout for Step Function Input')
-ylabel('Voltage (V)')
-xlabel('Time (s)')
-legend('Vin','Vout')
-hold off
-
-subplot(3,1,2);
-plot(t_vec_1, v_t,'LineWidth',1);
-hold on;
-plot(t_vec_1, BE2(outNode,:),'LineStyle','-.', 'color','r','LineWidth',1);
-title('Vin and Vout for Sin Function Input')
-ylabel('Voltage (V)')
-xlabel('Time (s)')
-legend('Vin','Vout')
-hold off
-
-subplot(3,1,3);
+figure(8)
+subplot(2,1,1);
 plot(t_vec_1, w_t,'LineWidth',1);
 hold on;
 plot(t_vec_1, BE3(outNode,:),'LineStyle','-.', 'color','r','LineWidth',1);
@@ -181,35 +154,9 @@ ylabel('Voltage (V)')
 xlabel('Time (s)')
 legend('Vin','Vout')
 hold off
-saveas(gcf,'Figure6')
-
-Fs = 1/h;
-dF = Fs/N;
-f = -Fs/2:dF:Fs/2 - dF;
-
-%F_vec_1 = 1./t_vec_1;
-figure(7)
-subplot(3,1,1);
-fullBE1 = full(BE1(outNode,:));
-FT1 = fft(fullBE1);
-plot(f,fftshift(abs(FT1)))
-title('Fourier Transform of Vout with Step Input')
-ylabel('Magnitude')
-xlabel('Frequency (Hz)')
-
-subplot(3,1,2);
-fullBE2 = full(BE2(outNode,:));
-FT2 = fft(fullBE2);
-plot(f,fftshift(abs(FT2)))
-title('Fourier Transform of Vout with Sinusoidal Input')
-ylabel('Magnitude')
-xlabel('Frequency (Hz)')
-
-subplot(3,1,3);
+subplot(2,1,2);
 fullBE3 = full(BE3(outNode,:));
 FT3 = fft(fullBE3);
-plot(f,fftshift(abs(FT3)))
-title('Fourier Transform of Vout with Gaussian Input')
-ylabel('Magnitude')
-xlabel('Frequency (Hz)')
-saveas(gcf,'Figure7')
+plot(fftshift(abs(FT3)))
+saveas(gcf,'Figure8')
+

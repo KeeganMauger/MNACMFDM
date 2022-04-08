@@ -13,6 +13,8 @@ set(0,'DefaultLineLineWidth', 0.5);
 global G b C
 nodes = 6;
 outNode = 5;
+inNode = 9;
+N = 1000; %num points
 G = sparse(nodes,nodes);
 C = sparse(nodes,nodes);
 b = sparse(nodes,1);
@@ -105,9 +107,20 @@ vcvs(4,0,xr,0,alpha);
 cur(4,0,In);
 cap(4,0,Cn);
 
-b1 = b*u_t;
-b2 = b*v_t;
-b3 = b*w_t;
+
+
+% b1 = b*u_t;
+% b2 = b*v_t;
+b3 = zeros(10,1000);
+b3(inNode,:) = w_t;
+
+std = 0.005;
+mu = In;
+r = normrnd(mu,std,1000);
+for i = 1:1000
+    b3(4,i) = r(i);
+end
+% make b*wt and In into 2 different things
 
 %--------------------------------------------------------------------------
 % FDM Solution: Backwards Euler with Timestep 0.001
@@ -116,48 +129,25 @@ h = 0.001;
 x = sparse(width(G),numel(t_vec_1));
 C_h = C*(1/h);
 
-for j = 1:3
-    for n=1:1000
-        if n == 1000
-            break;
-        end
-        BE_LHS = C_h + G;
-        BE_RHS = C_h*x(:,n) + b1(:,n+1);
-        [L, U, P, Q]= lu( sparse(BE_LHS) , 0.1 );
-        Z = L \(P* sparse(BE_RHS));
-        Y = U \ Z;
-        x(:,n+1) = Q*Y;
+for n=1:1000
+    if n == 1000
+        break;
     end
-    BE1 = x;
-    for n=1:1000
-        if n == 1000
-            break;
-        end
-        BE_LHS = C_h + G;
-        BE_RHS = C_h*x(:,n) + b2(:,n+1);
-        [L, U, P, Q]= lu( sparse(BE_LHS) , 0.1 );
-        Z = L \(P* sparse(BE_RHS));
-        Y = U \ Z;
-        x(:,n+1) = Q*Y;
-    end
-    BE2 = x;
-    for n=1:1000
-        if n == 1000
-            break;
-        end
-        BE_LHS = C_h + G;
-        BE_RHS = C_h*x(:,n) + b3(:,n+1);
-        [L, U, P, Q]= lu( sparse(BE_LHS) , 0.1 );
-        Z = L \(P* sparse(BE_RHS));
-        Y = U \ Z;
-        x(:,n+1) = Q*Y;
-    end
-    BE3 = x;
+    BE_LHS = C_h + G;
+    BE_RHS = C_h*x(:,n) + b3(:,n+1);
+    [L, U, P, Q]= lu( sparse(BE_LHS) , 0.1 );
+    Z = L \(P* sparse(BE_RHS));
+    Y = U \ Z;
+    x(:,n+1) = Q*Y;
 end
+BE3 = x;
 
+Fs = 1/h;
+dF = Fs/N;
+f = -Fs/2:dF:Fs/2 - dF;
 
-figure(7)
-
+figure(8)
+subplot(2,1,1);
 plot(t_vec_1, w_t,'LineWidth',1);
 hold on;
 plot(t_vec_1, BE3(outNode,:),'LineStyle','-.', 'color','r','LineWidth',1);
@@ -166,8 +156,13 @@ ylabel('Voltage (V)')
 xlabel('Time (s)')
 legend('Vin','Vout')
 hold off
-saveas(gcf,'Figure7')
 
-F_vec_1 = 1./t_vec_1;
-fullBE1 = full(BE1(outNode,:));
-FT1 = fft(fullBE1);
+subplot(2,1,2);
+fullBE3 = full(BE3(outNode,:));
+FT3 = fft(fullBE3);
+plot(f,fftshift(abs(FT3)))
+title('Fourier Transform of Vout with Noise')
+ylabel('Magnitude')
+xlabel('Frequency (Hz)')
+saveas(gcf,'Figure8')
+
