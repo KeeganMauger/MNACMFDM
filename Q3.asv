@@ -14,6 +14,7 @@ global G b C
 nodes = 6;
 outNode = 5;
 inNode = 9;
+N = 1000; %num points
 G = sparse(nodes,nodes);
 C = sparse(nodes,nodes);
 b = sparse(nodes,1);
@@ -90,7 +91,7 @@ R5 = 1000;
 C1 = 0.25;
 L1 = 0.2;
 alpha = 100;
-In = 0.001;
+In = 1;
 Cn = 0.00001;
 
 cap(1,2,C1);
@@ -103,7 +104,7 @@ xr = vol(6,0,Vprobe);
 ind(2,3,L1);
 vol(1,0,Vin);
 vcvs(4,0,xr,0,alpha);
-cur(4,0,In);
+cur(4,0,6);
 cap(4,0,Cn);
 
 
@@ -113,11 +114,12 @@ cap(4,0,Cn);
 b3 = zeros(10,1000);
 b3(inNode,:) = w_t;
 
-std = 0.005;
-mu = In;
-r = normrnd(mu,std,1000);
+% r = normrnd(mu,std,1000);
 for i = 1:1000
-    b3(4,i) = r(i);
+    r = In*randn();
+     b3(4,i) = r;
+     b3(6,i) = -r;
+    %b3(4,i) = 1;
 end
 % make b*wt and In into 2 different things
 
@@ -141,8 +143,10 @@ for n=1:1000
 end
 BE3 = x;
 
+
 Fs = 1/h;
-dF = 
+dF = Fs/N;
+f = -Fs/2:dF:Fs/2 - dF;
 
 figure(8)
 subplot(2,1,1);
@@ -154,9 +158,13 @@ ylabel('Voltage (V)')
 xlabel('Time (s)')
 legend('Vin','Vout')
 hold off
+
 subplot(2,1,2);
 fullBE3 = full(BE3(outNode,:));
 FT3 = fft(fullBE3);
-plot(fftshift(abs(FT3)))
+plot(f,fftshift(abs(FT3)))
+title('Fourier Transform of Vout with Noise')
+ylabel('Magnitude')
+xlabel('Frequency (Hz)')
 saveas(gcf,'Figure8')
 

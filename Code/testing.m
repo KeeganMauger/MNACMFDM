@@ -91,7 +91,7 @@ R5 = 1000;
 C1 = 0.25;
 L1 = 0.2;
 alpha = 100;
-In = 0.001;
+In = 1;
 Cn = 0.00001;
 
 cap(1,2,C1);
@@ -104,7 +104,7 @@ xr = vol(6,0,Vprobe);
 ind(2,3,L1);
 vol(1,0,Vin);
 vcvs(4,0,xr,0,alpha);
-cur(4,0,6);
+cur(4,0,In);
 cap(4,0,Cn);
 
 
@@ -116,9 +116,7 @@ b3(inNode,:) = w_t;
 
 % r = normrnd(mu,std,1000);
 for i = 1:1000
-    r = In*randn();
-     b3(4,i) = r;
-     b3(6,i) = -r;
+    b3(4,i) = In*randn();
     %b3(4,i) = 1;
 end
 % make b*wt and In into 2 different things
@@ -130,41 +128,11 @@ h = 0.001;
 x = sparse(width(G),numel(t_vec_1));
 C_h = C*(1/h);
 
-for n=1:1000
-    if n == 1000
+x = sparse((width(G)),1000);
+for i=1:1000
+    if i == 1000
         break;
     end
-    BE_LHS = C_h + G;
-    BE_RHS = C_h*x(:,n) + b3(:,n+1);
-    [L, U, P, Q]= lu( sparse(BE_LHS) , 0.1 );
-    Z = L \(P* sparse(BE_RHS));
-    Y = U \ Z;
-    x(:,n+1) = Q*Y;
+    x(:,i) = (G + C) \ b3(:,i);
 end
-BE3 = x;
-
-
-Fs = 1/h;
-dF = Fs/N;
-f = -Fs/2:dF:Fs/2 - dF;
-
-figure(8)
-subplot(2,1,1);
-plot(t_vec_1, w_t,'LineWidth',1);
-hold on;
-plot(t_vec_1, BE3(outNode,:),'LineStyle','-.', 'color','r','LineWidth',1);
-title('Vin and Vout for Gaussian Function Input')
-ylabel('Voltage (V)')
-xlabel('Time (s)')
-legend('Vin','Vout')
-hold off
-
-subplot(2,1,2);
-fullBE3 = full(BE3(outNode,:));
-FT3 = fft(fullBE3);
-plot(f,fftshift(abs(FT3)))
-title('Fourier Transform of Vout with Noise')
-ylabel('Magnitude')
-xlabel('Frequency (Hz)')
-saveas(gcf,'Figure8')
-
+BE3 = full(x);
