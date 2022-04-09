@@ -11,13 +11,14 @@ set(0,'DefaultLineLineWidth', 0.5);
 % Finite Difference Method Simulation
 %--------------------------------------------------------------------------
 
+Zfac = 15e-9;
 Vin = linspace(0.1,10,30);
 for J=1:length(Vin)
 fprintf('\nJ = %d',J);
 % Fixed bottleneck of 0.2x10-7m
 % Solving V=V0 @ x=0 and V=0 @ x=L in region LxW
 % Implement funtion 'pbaspect' to fix Z aspect ratio
-clearvars -except Vin J Ix_total Iavg
+clearvars -except Vin J Ix_total Iavg Zfac
 
 Conc = 1e19;
 L = 200e-9;
@@ -241,8 +242,8 @@ SPECDIFF_BOUND = 0;
     for i=1:N
         px(i) = 0 + (200e-9 - 0).*rand(1,1);
         py(i) = 0 + (100e-9 - 0).*rand(1,1);
-        while (0.8e-7 <= px(i) && px(i) <= 1.2e-7) && (0 <= py(i) && py(i) <= (0.4e-7) ) ||...
-                (0.8e-7 <= px(i) && px(i) <= 1.2e-7) && ((0.6e-7) <= py(i) && py(i) <= 1e-7)
+        while (0.8e-7 <= px(i) && px(i) <= 1.2e-7) && (0 <= py(i) && py(i) <= (0.4e-7 - Zfac) ) ||...
+                (0.8e-7 <= px(i) && px(i) <= 1.2e-7) && ((0.6e-7 + Zfac) <= py(i) && py(i) <= 1e-7)
             px(i) = 0 + (200e-9 - 0).*rand(1,1);
             py(i) = 0 + (100e-9 - 0).*rand(1,1);
         end
@@ -403,7 +404,7 @@ SPECDIFF_BOUND = 0;
                 end
             end
             % Reflection on bottom of upper box
-            if (py(k) >= (0.6e-7)) && (0.8e-7 <= px(k) && px(k) <= 1.2e-7)...
+            if (py(k) >= (0.6e-7 + Zfac)) && (0.8e-7 <= px(k) && px(k) <= 1.2e-7)...
                     && ( 0.8e-7 <= px_prev(k) && px_prev(k) <= 1.2e-7)
                 if SPECDIFF_BOUND == 1
                     vx(k) = (vth/sqrt(2))*randn();
@@ -411,10 +412,10 @@ SPECDIFF_BOUND = 0;
                 else
                     vy(k) = -vy(k);
                 end
-                py(k) = 0.601e-7;
+                py(k) = 0.601e-7 + Zfac;
                 %end
                 % Reflection on top of lower box
-            elseif (py(k) <= 0.4e-7) && (0.8e-7 <= px(k) && px(k) <= 1.2e-7)...
+            elseif (py(k) <= 0.4e-7 - Zfac) && (0.8e-7 <= px(k) && px(k) <= 1.2e-7)...
                     && (0.8e-7 <= px_prev(k) && px_prev(k) <= 1.2e-7)
                 if SPECDIFF_BOUND == 1
                     vx(k) = (vth/sqrt(2))*randn();
@@ -422,10 +423,10 @@ SPECDIFF_BOUND = 0;
                 else
                     vy(k) = -vy(k);
                 end
-                py(k) = 0.399e-7;
+                py(k) = 0.399e-7 - Zfac;
                 %end
                 % Reflection on left of lower box
-            elseif (0 <= py(k) && py(k) <= 0.4e-7) && (0.8e-7 <= px(k) && px(k) <= 1e-7)
+            elseif (0 <= py(k) && py(k) <= 0.4e-7 - Zfac) && (0.8e-7 <= px(k) && px(k) <= 1e-7)
                 if SPECDIFF_BOUND == 1
                     vx(k) = (vth/sqrt(2))*randn();
                     vy(k) = (vth/sqrt(2))*randn();
@@ -435,7 +436,7 @@ SPECDIFF_BOUND = 0;
                 px(k) = 0.799e-7;
                 %end
                 % Reflection on right of lower box
-            elseif (0 <= py(k) && py(k) <= 0.4e-7) && (1e-7 <= px(k) && px(k) <= 1.2e-7)
+            elseif (0 <= py(k) && py(k) <= 0.4e-7 - Zfac) && (1e-7 <= px(k) && px(k) <= 1.2e-7)
                 if SPECDIFF_BOUND == 1
                     vx(k) = (vth/sqrt(2))*randn();
                     vy(k) = (vth/sqrt(2))*randn();
@@ -445,7 +446,7 @@ SPECDIFF_BOUND = 0;
                 px(k) = 1.201e-7;
                 %end
                 % Reflection on left of upper box
-            elseif (0.6e-7 <= py(k) && py(k) <= 1e-7) && (0.8e-7 <= px(k) && px(k) <= 1e-7)
+            elseif (0.6e-7 + Zfac <= py(k) && py(k) <= 1e-7) && (0.8e-7 <= px(k) && px(k) <= 1e-7)
                 if SPECDIFF_BOUND == 1
                     vx(k) = (vth/sqrt(2))*randn();
                     vy(k) = (vth/sqrt(2))*randn();
@@ -455,7 +456,7 @@ SPECDIFF_BOUND = 0;
                 px(k) = 0.799e-7;
                 %end
                 % Reflection on right of upper box
-            elseif (0.6e-7 <= py(k) && py(k) <= 1e-7) && (1e-7 <= px(k) && px(k) <= 1.2e-7)
+            elseif (0.6e-7 + Zfac <= py(k) && py(k) <= 1e-7) && (1e-7 <= px(k) && px(k) <= 1.2e-7)
                 if SPECDIFF_BOUND == 1
                     vx(k) = (vth/sqrt(2))*randn();
                     vy(k) = (vth/sqrt(2))*randn();

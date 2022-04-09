@@ -1,4 +1,4 @@
-clear all
+clearvars -except R3
 close all
 clc
 %set(0,'DefaultFigureWindowStyle','docked')
@@ -6,6 +6,9 @@ set(0,'defaultaxesfontsize',10)
 set(0,'defaultaxesfontname','Times New Roman')
 set(0,'DefaultLineLineWidth', 0.5);
 
+H = [0.0001,0.00001,0.000001];
+for J = 1:3
+clearvars -except J H R3 BE3 N
 %--------------------------------------------------------------------------
 % Modified Nodal Analysis - Transient Analysis
 %--------------------------------------------------------------------------
@@ -13,6 +16,8 @@ set(0,'DefaultLineLineWidth', 0.5);
 global G b C
 nodes = 6;
 outNode = 5;
+inNode = 9;
+N = 1000; %num points
 G = sparse(nodes,nodes);
 C = sparse(nodes,nodes);
 b = sparse(nodes,1);
@@ -82,13 +87,15 @@ Vin = 1;
 Vprobe = 0;
 R1 = 1;
 R2 = 2;
-R3 = 50;
 %R3 = 123.346641;
+% R3 = 50;
 R4 = 0.1;
 R5 = 1000;
 C1 = 0.25;
 L1 = 0.2;
 alpha = 100;
+In = 0.001;
+Cn = H(J);
 
 cap(1,2,C1);
 res(1,2,R1);
@@ -100,42 +107,32 @@ xr = vol(6,0,Vprobe);
 ind(2,3,L1);
 vol(1,0,Vin);
 vcvs(4,0,xr,0,alpha);
+cur(4,0,6);
+cap(4,0,Cn);
 
-b1 = b*u_t;
-b2 = b*v_t;
-b3 = b*w_t;
+
+
+% b1 = b*u_t;
+% b2 = b*v_t;
+b3 = zeros(10,1000);
+b3(inNode,:) = w_t;
+
+% r = normrnd(mu,std,1000);
+for i = 1:1000
+    r = In*randn();
+     b3(4,i) = r;
+     b3(6,i) = -r;
+    %b3(4,i) = 1;
+end
+% make b*wt and In into 2 different things
 
 %--------------------------------------------------------------------------
 % FDM Solution: Backwards Euler with Timestep 0.001
 %--------------------------------------------------------------------------
-h = 0.001;
+h = H(J);
 x = sparse(width(G),numel(t_vec_1));
 C_h = C*(1/h);
 
-for n=1:1000
-    if n == 1000
-        break;
-    end
-    BE_LHS = C_h + G;
-    BE_RHS = C_h*x(:,n) + b1(:,n+1);
-    [L, U, P, Q]= lu( sparse(BE_LHS) , 0.1 );
-    Z = L \(P* sparse(BE_RHS));
-    Y = U \ Z;
-    x(:,n+1) = Q*Y;
-end
-BE1 = x;
-for n=1:1000
-    if n == 1000
-        break;
-    end
-    BE_LHS = C_h + G;
-    BE_RHS = C_h*x(:,n) + b2(:,n+1);
-    [L, U, P, Q]= lu( sparse(BE_LHS) , 0.1 );
-    Z = L \(P* sparse(BE_RHS));
-    Y = U \ Z;
-    x(:,n+1) = Q*Y;
-end
-BE2 = x;
 for n=1:1000
     if n == 1000
         break;
@@ -147,88 +144,73 @@ for n=1:1000
     Y = U \ Z;
     x(:,n+1) = Q*Y;
 end
-BE3 = x;
+BE3{J} = x;
 
+end
 
+Fs = 1/0.001;
+dF = Fs/N;
+f = -Fs/2:dF:Fs/2 - dF;
 
-figure(6)
-subplot(3,1,1);
-plot(t_vec_1, u_t,'LineWidth',1);
+S1 = BE3{1};
+S2 = BE3{2};
+S3 = BE3{3};
+
+figure(9)
+subplot(2,3,1);
+plot(t_vec_1, w_t,'LineWidth',1)
 hold on;
-plot(t_vec_1, BE1(outNode,:),'LineStyle','-.', 'color','r','LineWidth',1);
-title('Vin and Vout for Step Function Input')
+plot(t_vec_1, S1(outNode,:),'LineStyle','-.', 'color','r','LineWidth',1);
+title('Vin and Vout with Noise, Cn = 0.0001F')
 ylabel('Voltage (V)')
 xlabel('Time (s)')
 legend('Vin','Vout')
 hold off
 
-subplot(3,1,2);
-plot(t_vec_1, v_t,'LineWidth',1);
+subplot(2,3,2);
+plot(t_vec_1, w_t,'LineWidth',1)
 hold on;
-plot(t_vec_1, BE2(outNode,:),'LineStyle','-.', 'color','r','LineWidth',1);
-title('Vin and Vout for Sin Function Input')
+plot(t_vec_1, S2(outNode,:),'LineStyle','-.', 'color','r','LineWidth',1);
+title('Vin and Vout with Noise, Cn = 0.00001F')
 ylabel('Voltage (V)')
 xlabel('Time (s)')
 legend('Vin','Vout')
 hold off
 
-subplot(3,1,3);
-plot(t_vec_1, w_t,'LineWidth',1);
+subplot(2,3,3);
+plot(t_vec_1, w_t,'LineWidth',1)
 hold on;
-plot(t_vec_1, BE3(outNode,:),'LineStyle','-.', 'color','r','LineWidth',1);
-title('Vin and Vout for Gaussian Function Input')
+plot(t_vec_1, S3(outNode,:),'LineStyle','-.', 'color','r','LineWidth',1);
+title('Vin and Vout with Noise, Cn = 0.000001F')
 ylabel('Voltage (V)')
 xlabel('Time (s)')
 legend('Vin','Vout')
 hold off
-saveas(gcf,'Figure6')
 
-%F_vec_1 = 1./t_vec_1;
-figure(7)
-subplot(3,1,1);
-fullBE1 = full(BE1(outNode,:));
-FT1 = fft(fullBE1);
-plot(fftshift(abs(FT1)))
+subplot(2,3,4);
+fullS1 = full(S1(outNode,:));
+FTS1 = fft(fullS1);
+plot(f,fftshift(abs(FTS1)))
+title('FT of Vout with Noise, Cn = 0.0001F')
+ylabel('Magnitude')
+xlabel('Frequency (Hz)')
+hold off
 
-subplot(3,1,2);
-fullBE2 = full(BE2(outNode,:));
-FT2 = fft(fullBE2);
-plot(fftshift(abs(FT2)))
+subplot(2,3,5);
+fullS2 = full(S2(outNode,:));
+FTS2 = fft(fullS2);
+plot(f,fftshift(abs(FTS2)))
+title('FT of Vout with Noise, Cn = 0.00001F')
+ylabel('Magnitude')
+xlabel('Frequency (Hz)')
+hold off
 
-subpllot(3,1,3);
-fullBE3 = full
-
-
-
-
-% w = 0;
-% s = j*w;
-% 
-% A = G + s*C;
-% A0 = full(A);
-% 
-% 
-% V0 = linspace(-10,10,21);
-% b0 = sparse((width(G)),width(V0));
-% for i = 1:width(V0)
-%     b0(9,i) = V0(i);
-% end
-% 
-% x = sparse((width(G)),width(V0));
-% 
-% for j = 1:width(V0)
-%     x(:,j) = (G + s*C) \ b0(:,j);
-% end
-% 
-% figure(2)
-% plot(V0,x(5,:))
-% hold on
-% plot(V0,x(3,:))
-% grid on
-% axis([-10 10 -100 100])
-% title('Vout vs Vin')
-% xlabel('Vin')
-% ylabel('Vout')
-% legend('Vout','V3')
-% saveas(gcf,'Figure2')
-% hold off
+subplot(2,3,6);
+fullS3 = full(S3(outNode,:));
+FTS3 = fft(fullS3);
+plot(f,fftshift(abs(FTS3)))
+title('FT of Vout with Noise, Cn = 0.000001F')
+ylabel('Magnitude')
+xlabel('Frequency (Hz)')
+saveas(gcf,'Figure9')
+hold off

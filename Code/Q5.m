@@ -1,4 +1,4 @@
-clear all
+clearvars -except R3
 close all
 clc
 %set(0,'DefaultFigureWindowStyle','docked')
@@ -6,6 +6,9 @@ set(0,'defaultaxesfontsize',10)
 set(0,'defaultaxesfontname','Times New Roman')
 set(0,'DefaultLineLineWidth', 0.5);
 
+H = [0.01, 0.001];
+for J = 1:2
+clearvars -except J H R3 BE3 N
 %--------------------------------------------------------------------------
 % Modified Nodal Analysis - Transient Analysis
 %--------------------------------------------------------------------------
@@ -85,13 +88,13 @@ Vprobe = 0;
 R1 = 1;
 R2 = 2;
 %R3 = 123.346641;
-R3 = 50;
+% R3 = 50;
 R4 = 0.1;
 R5 = 1000;
 C1 = 0.25;
 L1 = 0.2;
 alpha = 100;
-In = 1;
+In = 0.001;
 Cn = 0.00001;
 
 cap(1,2,C1);
@@ -126,7 +129,7 @@ end
 %--------------------------------------------------------------------------
 % FDM Solution: Backwards Euler with Timestep 0.001
 %--------------------------------------------------------------------------
-h = 0.001;
+h = H(J);
 x = sparse(width(G),numel(t_vec_1));
 C_h = C*(1/h);
 
@@ -141,30 +144,53 @@ for n=1:1000
     Y = U \ Z;
     x(:,n+1) = Q*Y;
 end
-BE3 = x;
+BE3{J} = x;
 
+end
 
-Fs = 1/h;
+Fs = 1/0.001;
 dF = Fs/N;
 f = -Fs/2:dF:Fs/2 - dF;
 
-figure(8)
-subplot(2,1,1);
-plot(t_vec_1, w_t,'LineWidth',1);
+S1 = BE3{1};
+S2 = BE3{2};
+
+figure(10)
+subplot(2,2,1);
+plot(t_vec_1, w_t,'LineWidth',1)
 hold on;
-plot(t_vec_1, BE3(outNode,:),'LineStyle','-.', 'color','r','LineWidth',1);
-title('Vin and Vout for Gaussian Function Input')
+plot(t_vec_1, S1(outNode,:),'LineStyle','-.', 'color','r','LineWidth',1);
+title('Vin and Vout for Gaussian Function Input with Noise, Timestep = 0.01s')
 ylabel('Voltage (V)')
 xlabel('Time (s)')
 legend('Vin','Vout')
 hold off
 
-subplot(2,1,2);
-fullBE3 = full(BE3(outNode,:));
-FT3 = fft(fullBE3);
-plot(f,fftshift(abs(FT3)))
-title('Fourier Transform of Vout with Noise')
+subplot(2,2,2);
+plot(t_vec_1, w_t,'LineWidth',1)
+hold on;
+plot(t_vec_1, S2(outNode,:),'LineStyle','-.', 'color','r','LineWidth',1);
+title('Vin and Vout for Gaussian Function Input with Noise, Timestep = 0.001s')
+ylabel('Voltage (V)')
+xlabel('Time (s)')
+legend('Vin','Vout')
+hold off
+
+subplot(2,2,3);
+fullS1 = full(S1(outNode,:));
+FTS1 = fft(fullS1);
+plot(f,fftshift(abs(FTS1)))
+title('Fourier Transform of Vout with Noise, Timestep = 0.01s')
 ylabel('Magnitude')
 xlabel('Frequency (Hz)')
-saveas(gcf,'Figure8')
+hold off
 
+subplot(2,2,4);
+fullS2 = full(S2(outNode,:));
+FTS2 = fft(fullS2);
+plot(f,fftshift(abs(FTS2)))
+title('Fourier Transform of Vout with Noise, Timestep = 0.001s')
+ylabel('Magnitude')
+xlabel('Frequency (Hz)')
+saveas(gcf,'Figure10')
+hold off

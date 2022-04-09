@@ -1,4 +1,4 @@
-clear all
+clearvars -except R3
 close all
 clc
 %set(0,'DefaultFigureWindowStyle','docked')
@@ -85,7 +85,7 @@ Vprobe = 0;
 R1 = 1;
 R2 = 2;
 %R3 = 123.346641;
-R3 = 50;
+% R3 = 50;
 R4 = 0.1;
 R5 = 1000;
 C1 = 0.25;
