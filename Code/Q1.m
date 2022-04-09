@@ -1,4 +1,3 @@
-
 clear all
 close all
 clc
@@ -13,12 +12,13 @@ set(0,'DefaultLineLineWidth', 0.5);
 
 Zfac = 15e-9;
 Vin = linspace(0.1,10,30);
+Complete = linspace(0,100,30);
 for J=1:length(Vin)
-fprintf('\nJ = %d',J);
+fprintf('\n%3.2f percent complete',Complete(J));
 % Fixed bottleneck of 0.2x10-7m
 % Solving V=V0 @ x=0 and V=0 @ x=L in region LxW
 % Implement funtion 'pbaspect' to fix Z aspect ratio
-clearvars -except Vin J Ix_total Iavg Zfac
+clearvars -except Vin J Ix_total Iavg Zfac Complete
 
 Conc = 1e19;
 L = 200e-9;

@@ -1,6 +1,6 @@
 clearvars -except R3
-close all
-clc
+% close all
+% clc
 %set(0,'DefaultFigureWindowStyle','docked')
 set(0,'defaultaxesfontsize',10)
 set(0,'defaultaxesfontname','Times New Roman')
