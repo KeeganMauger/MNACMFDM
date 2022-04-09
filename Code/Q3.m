@@ -107,7 +107,9 @@ vcvs(4,0,xr,0,alpha);
 cur(4,0,6);
 cap(4,0,Cn);
 
-
+fullC = full(C);
+fprintf('\nThe updated C matrix is given by:\n');
+disp(fullC);
 
 % b1 = b*u_t;
 % b2 = b*v_t;

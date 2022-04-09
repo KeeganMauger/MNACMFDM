@@ -557,7 +557,11 @@ s = j*w;
 
 A = G + s*C;
 A0 = full(A);
+G0 = full(G);
+C0 = full(C);
 
+disp(G0);
+disp(C0);
 
 V0 = linspace(-10,10,21);
 b0 = sparse((width(G)),width(V0));
